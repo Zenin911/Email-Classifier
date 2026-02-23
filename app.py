@@ -378,7 +378,38 @@ if page == "📧 Analyze Email":
         confidence = result["confidence"]
         routing = ROUTING_MAP.get(category, {"team": "General Support", "color": "#888"})
 
-        # ─── Show Results ────────────────────────────────────────────────
+        # Save to session
+        email_record = {
+            "id": len(st.session_state.classified_emails) + 1,
+            "sender": sender_email or "Unknown",
+            "subject": subject_line or "No Subject",
+            "content": email_content[:200] + "..." if len(email_content) > 200 else email_content,
+            "full_content": email_content,
+            "category": category,
+            "urgency": urgency,
+            "confidence": confidence,
+            "team": routing["team"],
+            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+        st.session_state.classified_emails.append(email_record)
+
+        # Store result for persistent display
+        st.session_state["last_result"] = {
+            **result,
+            "routing": routing,
+        }
+
+    elif classify_btn and not email_content:
+        st.warning("⚠ Please enter email content to classify.")
+
+    # ─── Show Results (persists across reruns) ────────────────────────────
+    if "last_result" in st.session_state:
+        result = st.session_state["last_result"]
+        category = result["category"]
+        urgency = result["urgency"]
+        confidence = result["confidence"]
+        routing = result["routing"]
+
         st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
         st.markdown('<div class="main-header" style="font-size: 1.8rem;">🎯 Classification Result</div>', unsafe_allow_html=True)
 
@@ -448,31 +479,14 @@ if page == "📧 Analyze Email":
             st.code(reply, language=None)
             st.button("📋 Copy Reply", key="copy_reply")
 
-        # ─── Save to session ─────────────────────────────────────────────
-        email_record = {
-            "id": len(st.session_state.classified_emails) + 1,
-            "sender": sender_email or "Unknown",
-            "subject": subject_line or "No Subject",
-            "content": email_content[:200] + "..." if len(email_content) > 200 else email_content,
-            "full_content": email_content,
-            "category": category,
-            "urgency": urgency,
-            "confidence": confidence,
-            "team": routing["team"],
-            "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        }
-        st.session_state.classified_emails.append(email_record)
-
-        # Go to Dashboard button
+        # Go to Dashboard button — OUTSIDE classify_btn block so it works on click
         st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
         col_go1, col_go2, col_go3 = st.columns([1, 2, 1])
         with col_go2:
             if st.button("📊 Go to Dashboard →", use_container_width=True, key="go_dashboard"):
+                st.session_state.pop("last_result", None)
                 st.session_state["nav"] = "📊 Dashboard"
                 st.rerun()
-
-    elif classify_btn and not email_content:
-        st.warning("⚠ Please enter email content to classify.")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
