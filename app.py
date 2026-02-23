@@ -238,6 +238,7 @@ with st.sidebar:
         ["📧 Analyze Email", "📊 Dashboard"],
         index=0,
         label_visibility="collapsed",
+        key="nav",
     )
 
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
@@ -467,7 +468,7 @@ if page == "📧 Analyze Email":
         col_go1, col_go2, col_go3 = st.columns([1, 2, 1])
         with col_go2:
             if st.button("📊 Go to Dashboard →", use_container_width=True, key="go_dashboard"):
-                st.session_state["_nav"] = "📊 Dashboard"
+                st.session_state["nav"] = "📊 Dashboard"
                 st.rerun()
 
     elif classify_btn and not email_content:
