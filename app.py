@@ -232,13 +232,17 @@ with st.sidebar:
 
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
 
+    # Apply pending navigation BEFORE radio renders
+    nav_index = 0
+    if st.session_state.pop("_go_dashboard", False):
+        nav_index = 1
+
     # Navigation
     page = st.radio(
         "Navigation",
         ["📧 Analyze Email", "📊 Dashboard"],
-        index=0,
+        index=nav_index,
         label_visibility="collapsed",
-        key="nav",
     )
 
     st.markdown('<div class="custom-divider"></div>', unsafe_allow_html=True)
@@ -485,7 +489,7 @@ if page == "📧 Analyze Email":
         with col_go2:
             if st.button("📊 Go to Dashboard →", use_container_width=True, key="go_dashboard"):
                 st.session_state.pop("last_result", None)
-                st.session_state["nav"] = "📊 Dashboard"
+                st.session_state["_go_dashboard"] = True
                 st.rerun()
 
 
